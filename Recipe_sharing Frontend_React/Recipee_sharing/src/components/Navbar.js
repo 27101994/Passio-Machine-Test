@@ -23,7 +23,7 @@ function Navbar() {
     return (
         <nav className="navbar navbar-expand-sm navbar-dark bg-dark">
             <div className="navbar-brand">
-                <h4>Book My Show</h4>
+                <h4>Recipe Sharing website</h4>
             </div>
             <button
                 className="navbar-toggler"
@@ -44,7 +44,16 @@ function Navbar() {
                             className="nav-link"
                             activeClassName="active"
                         >
-                            Movies
+                            Recipe List
+                        </NavLink>
+                    </li>
+                    <li className="nav-item">
+                        <NavLink
+                            to={"/recipe"}
+                            className="nav-link"
+                            activeClassName="active"
+                        >
+                            Create Recipe
                         </NavLink>
                     </li>
                     <li className="nav-item">
@@ -59,8 +68,8 @@ function Navbar() {
                     {user ? (<>
 
                         <li className="nav-item">
-                            <NavLink className="nav-link" to='/my_bookings'>
-                                My bookings
+                            <NavLink className="nav-link" to='/profiles'>
+                                Profiles
                             </NavLink>
                         </li>
 

@@ -55,13 +55,69 @@ class RecipeController extends Controller
     }
 
 
-    public function getRecipes()
-    {
-        // Retrieve all recipes with associated user and images
-        $recipes = Recipe::with(['user', 'images'])->get();
 
-        return response()->json(['data' => $recipes]);
+    public function updateRecipe(Request $request, $recipeId)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'ingredients' => 'required|string',
+            'steps' => 'required|string',
+            'cooking_time' => 'required|integer',
+            'difficulty' => 'required|string',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+
+        try {
+            $recipe = Recipe::findOrFail($recipeId);
+
+            // Check if the authenticated user owns the recipe
+            if ($recipe->user_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized to update this recipe'], 403);
+            }
+
+            // Update the recipe data
+            $recipe->update($request->except('images'));
+
+            // Delete existing images
+            $recipe->images()->delete();
+
+            // Add new images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('recipe_images');
+
+                    RecipeImage::create([
+                        'recipe_id' => $recipe->id,
+                        'image_path' => $path,
+                    ]);
+                }
+            }
+
+            $recipe = Recipe::with(['user', 'images'])->find($recipe->id);
+
+            return response()->json(['message' => 'Recipe updated successfully', 'data' => $recipe]);
+        } catch (\Exception $e) {
+            // Log the exception for debugging purposes
+            \Log::error('Error updating recipe: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Failed to update recipe. Please try again.'], 500);
+        }
     }
+
+
+    // public function getRecipes()
+    // {
+    //     // Retrieve all recipes with associated user and images
+    //     $recipes = Recipe::with(['user', 'images'])->get();
+
+    //     return response()->json(['data' => $recipes]);
+    // }
 
     public function deleteRecipe($recipeId)
     {
@@ -110,15 +166,26 @@ class RecipeController extends Controller
     {
         $user = Auth::user();
         $recipe = Recipe::findOrFail($recipeId);
-
-        // Check if the user has already liked the recipe
-        if ($recipe->likes()->where('user_id', $user->id)->exists()) {
-            return response()->json(['message' => 'You have already liked this recipe'], 422);
+    
+        // Validation rules
+        $request->validate([
+            'type' => 'required|integer|in:0,1',
+        ]);
+    
+        // Check if the user has already liked or disliked the recipe
+        $existingLike = $recipe->likes()->where('user_id', $user->id)->first();
+    
+        if ($existingLike) {
+            return response()->json(['message' => 'You have already interacted with this recipe'], 422);
         }
-
-        // Attach the like to the user
-        $recipe->likes()->attach($user->id);
-
-        return response()->json(['message' => 'Recipe liked successfully']);
+    
+        // Attach the like or dislike to the user based on the validated request
+        $type = $request->input('type', 1); // Default to like if type is not provided
+        $recipe->likes()->attach($user->id, ['type' => $type]);
+    
+        $message = ($type == 1) ? 'Recipe liked successfully' : 'Recipe disliked successfully';
+    
+        return response()->json(['message' => $message]);
     }
+    
 }

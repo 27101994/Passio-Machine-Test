@@ -83,4 +83,23 @@ class ProfileController extends Controller
 
         return response()->json(['message' => 'Profile updated successfully', 'profile' => $profile]);
     }
+
+    /**
+     * Remove the specified profile from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $profile = Profile::find($id);
+
+        if (!$profile) {
+            return response()->json(['message' => 'Profile not found'], 404);
+        }
+
+        $profile->delete();
+
+        return response()->json(['message' => 'Profile deleted successfully']);
+    }
 }

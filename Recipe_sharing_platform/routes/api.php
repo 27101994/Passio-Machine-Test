@@ -23,6 +23,20 @@ use App\Http\Controllers\ActivityFeedController;
 Route::post('register', [UserController::class, 'register']);
 Route::post('login', [UserController::class, 'login']);
 
+use App\Http\Controllers\RecipePublicController;
+
+// ...
+
+// Use the getRecipesPublic function for public access without authentication
+Route::get('/recipes-public', [RecipePublicController::class, 'getRecipesPublic']);
+
+use App\Http\Controllers\GetprofileController;
+
+Route::get('/profiles', [GetprofileController::class, 'getAllProfiles']);
+
+
+
+
 // Routes protected by auth:api middleware
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', [UserController::class, 'logout']);
@@ -30,6 +44,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/profiles/{id}', [ProfileController::class, 'show']);
     Route::post('/profiles', [ProfileController::class, 'store']);
     Route::put('/profiles/{id}', [ProfileController::class, 'update']);
+    Route::delete('/profiles/{id}', [ProfileController::class, 'destroy']);
 
     Route::post('/recipes', [RecipeController::class, 'createRecipe']);
     Route::get('/recipes', [RecipeController::class, 'getRecipes']);
@@ -37,6 +52,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/recipes/search', [RecipeController::class, 'searchRecipes']);
     Route::post('/recipes/{recipeId}/rate', [RecipeController::class, 'rateRecipe']);
     Route::post('/recipes/{recipeId}/like', [RecipeController::class, 'likeRecipe']);
+    Route::put('/recipes/{recipeId}', [RecipeController::class, 'updateRecipe']);
 
     Route::post('/follow/{userId}', [FollowController::class, 'followUser']);
     Route::post('/unfollow/{userId}', [FollowController::class, 'unfollowUser']);

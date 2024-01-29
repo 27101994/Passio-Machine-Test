@@ -1,83 +1,69 @@
-import axios from "axios";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../Navbar";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import Navbar from '../Navbar';
 
-function Register() {
-    var [username, setUsername] = useState('');
-    var [password1, setPassword1] = useState('');
-    var [password2, setPassword2] = useState('');
-    var [errorMessage, setErrorMessage] = useState('');
-    var navigate = useNavigate();
+function RegisterComponent() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate(); // Initialize useNavigate
 
-    function registerUser() {
-        var user = {
-            username: username,
-            password1: password1,
-            password2: password2
-        };
+  const registerUser = () => {
+    const user = {
+      name: name,
+      email: email,
+      password: password,
+      password_confirmation: passwordConfirmation,
+    };
 
-        axios.post('http://127.0.0.1:8000/api/signup/', user)
-            .then(response => {
-                setErrorMessage('');
-                navigate('/');
-            })
-            .catch(error => {
-                if (error.response.data.username) {
-                    setErrorMessage(error.response.data.username[0]);
-                } else if (error.response.data.password1) {
-                    setErrorMessage(error.response.data.password1[0]);
-                } else if (error.response.data.password2) {
-                    setErrorMessage(error.response.data.password2[0]);
-                } else {
-                    setErrorMessage('Failed to connect to the API');
-                }
-            });
-    }
+    axios.post('http://127.0.0.1:8000/api/register/', user)
+      .then(response => {
+        setErrorMessage('');
+        // Handle successful registration (redirect or show success message)
+        navigate('/login'); // Navigate to '/login' after successful registration
+      })
+      .catch(error => {
+        if (error.response.data.message) {
+          setErrorMessage(error.response.data.message);
+        } else {
+          setErrorMessage('Failed to connect to the API');
+        }
+      });
+  };
 
-    return (
-        <div>
-            <Navbar />
-            <div className="container">
-                <div className="row">
-                    <div className="col-8 offset-2">
-                        <h1>Register</h1>
-                        {errorMessage ? <div className="alert alert-danger">{errorMessage}</div> : ''}
-                        <div className="form-group">
-                            <label>Username:</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={username}
-                                onChange={(event) => setUsername(event.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Password:</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                value={password1}
-                                onChange={(event) => setPassword1(event.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Confirm Password:</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                value={password2}
-                                onChange={(event) => setPassword2(event.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <button className="btn btn-primary float-right" onClick={registerUser}>Submit</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div>
+      <Navbar />
+    <div className="container mt-5"> {/* Add Bootstrap container class */}
+      <div className="mb-3">
+        <label className="form-label">Name:</label>
+        <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Email:</label>
+        <input type="text" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Password:</label>
+        <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Password Confirmation:</label>
+        <input type="password" className="form-control" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} />
+      </div>
+
+      <button className="btn btn-primary" onClick={registerUser}>Register</button>
+      
+      {errorMessage && <p className="text-danger">{errorMessage}</p>}
+    </div>
+    </div>
+  );
 }
 
-export default Register;
+export default RegisterComponent;

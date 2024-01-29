@@ -1,72 +1,67 @@
-import axios from "axios";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { setUser } from "../../store/authSlice";
-import Navbar from "../Navbar";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useDispatch } from 'react-redux'; // Import useDispatch to dispatch actions
+import { setUser } from '../../store/authSlice';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-function Login() {
-    var [username, setUsername] = useState('');
-    var [password, setPassword] = useState('');
-    var [errorMessage, setErrorMessage] = useState('');
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+import Navbar from '../Navbar';
 
-    function attemptLogin() {
-        axios.post('http://127.0.0.1:8000/api/login/', {
-            username: username,
-            password: password
-        }).then(response => {
-            setErrorMessage('');
-            var user = {
-                username: username,
-                token: response.data.token
-            };
-            dispatch(setUser(user));
-            navigate("/");
-        }).catch(error => {
-            if (error.response.data.non_field_errors) {
-                setErrorMessage(error.response.data.non_field_errors[0]);
-            } else {
-                setErrorMessage('Failed to login user. Please contact admin');
-            }
-        });
-    }
+function LoginComponent() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-    return (
-        <div>
-            <Navbar />
-            <div className="container">
-                <div className="row">
-                    <div className="col-8 offset-2">
-                        <h1>Login</h1>
-                        {errorMessage ? <div className="alert alert-danger">{errorMessage}</div> : ''}
-                        <div className="form-group">
-                            <label>Username:</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={username}
-                                onInput={(event) => setUsername(event.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Password:</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                value={password}
-                                onInput={(event) => setPassword(event.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <button className="btn btn-primary float-right" onClick={attemptLogin}>Login</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  const dispatch = useDispatch(); // Initialize useDispatch to dispatch actions
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  const loginUser = () => {
+    const user = {
+      email: email,
+      password: password,
+    };
+
+    axios.post('http://127.0.0.1:8000/api/login/', user)
+      .then(response => {
+        setErrorMessage('');
+
+        // Assuming your response contains a token field, adjust accordingly
+        const token = response.data.access_token;
+        console.log(token)
+
+        // Dispatch the setUser action with the user information, including the token
+        dispatch(setUser({
+          email: response.data.email, // Adjust accordingly based on your API response
+          accessToken: token,
+          
+        }));
+
+        // Redirect or navigate to the desired page
+        // For example, navigate to '/app' after successful login
+        navigate('/');  // Navigate to the recipe list page
+      })
+      .catch(error => {
+        if (error.response.data.message) {
+          setErrorMessage(error.response.data.message);
+        } else {
+          setErrorMessage('Failed to connect to the API');
+        }
+      });
+  };
+
+  return (
+    <div>
+      <Navbar />
+      <label>Email:</label>
+      <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} />
+
+      <label>Password:</label>
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+
+      <button onClick={loginUser}>Login</button>
+
+      {errorMessage && <p>{errorMessage}</p>}
+    </div>
+  );
 }
 
-export default Login;
+export default LoginComponent;
