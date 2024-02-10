@@ -5,22 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ActivityFeed extends Model
+class Like extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'activity_type',
-        'activity_details',
-    ];
-
-    protected $casts = [
-        'activity_details' => 'json',
+        'user_id', 'recipe_id', 'status',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function recipe()
+    {
+        return $this->belongsTo(Recipe::class);
     }
 }

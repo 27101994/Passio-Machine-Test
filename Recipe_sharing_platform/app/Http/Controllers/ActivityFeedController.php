@@ -2,66 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityFeed;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Recipe;
 
 class ActivityFeedController extends Controller
 {
-    /**
-     * Display a listing of the activity feeds.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function showActivityFeed($userId)
     {
-        $activityFeeds = ActivityFeed::with('user')->get();
+        try {
+            // Get the user
+            $user = User::find($userId);
 
-        return response()->json(['activityFeeds' => $activityFeeds]);
-    }
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
 
-    /**
-     * Store a newly created activity feed in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'activity_type' => 'required|string',
-            'activity_details' => 'required|array',
-            // Add other validation rules as needed
-        ]);
+            // Get the users who are following the current user
+            $followerIds = $user->followers->pluck('id');
 
-        $user = Auth::user();
+            // Get the recipes of the followers
+            $recipes = Recipe::whereIn('user_id', $followerIds)
+                ->with('user') // Eager load user details
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        $activityFeed = $user->activityFeeds()->create([
-            'activity_type' => $request->input('activity_type'),
-            'activity_details' => $request->input('activity_details'),
-        ]);
-
-        return response()->json(['message' => 'Activity feed created successfully', 'activityFeed' => $activityFeed]);
-    }
-
-    /**
-     * Remove the specified activity feed from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $activityFeed = ActivityFeed::find($id);
-
-        if (!$activityFeed) {
-            return response()->json(['message' => 'Activity feed not found'], 404);
+            return response()->json(['recipes' => $recipes]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching recipe feed: ' . $e->getMessage());
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
-
-        $this->authorize('delete', $activityFeed);
-
-        $activityFeed->delete();
-
-        return response()->json(['message' => 'Activity feed deleted successfully']);
     }
 }

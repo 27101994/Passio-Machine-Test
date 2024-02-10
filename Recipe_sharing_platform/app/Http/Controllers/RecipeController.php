@@ -2,190 +2,118 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Recipe;
-use App\Models\RecipeImage;
+use App\Models\User;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Activity;
 use Illuminate\Support\Facades\Auth;
-
-use Illuminate\Support\Facades\Storage;
 
 class RecipeController extends Controller
 {
-    public function createRecipe(Request $request)
+    public function create(Request $request)
     {
+        // Validate incoming request data
         $request->validate([
-            'title' => 'required|string',
+            'title' => 'required|string|max:255',
             'ingredients' => 'required|string',
             'steps' => 'required|string',
             'cooking_time' => 'required|integer',
-            'difficulty' => 'required|string',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'difficulty_level' => 'required|in:easy,medium,difficult', // Use 'in' rule for enum values
         ]);
 
-        $user = Auth::user();
+    // Recipe creation logic
+    $recipe = Recipe::create([
+        'user_id' => auth()->user()->id,
+        'title' => $request->input('title'),
+        'ingredients' => $request->input('ingredients'),
+        'steps' => $request->input('steps'),
+        'cooking_time' => $request->input('cooking_time'),
+        'difficulty_level' => $request->input('difficulty_level'),
+    ]);
 
-        if (!$user) {
-            return response()->json(['message' => 'User not authenticated'], 401);
-        }
+    // // Save activity feed entry
+    // Activity::create([
+    //     'user_id' => auth()->user()->id, // Ensure this is the correct case
+    //     'recipe_id' => $recipe->id,
+    //     'added_date' => now()->toDateString(),
+    // ]);
 
-        try {
-            $recipe = $user->recipes()->create($request->except('images'));
+    return response()->json(['message' => 'Recipe created successfully', 'data' => $recipe], 201);
+}
 
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $path = $image->store('recipe_images');
+    public function getAllRecipes()
+    {
+        $recipes = Recipe::all();
 
-                    RecipeImage::create([
-                        'recipe_id' => $recipe->id,
-                        'image_path' => $path,
-                    ]);
-                }
-            }
-
-            $recipe = Recipe::with(['user', 'images'])->find($recipe->id);
-
-            return response()->json(['message' => 'Recipe created successfully', 'data' => $recipe]);
-        } catch (\Exception $e) {
-            // Log the exception for debugging purposes
-            \Log::error('Error creating recipe: ' . $e->getMessage());
-
-            return response()->json(['message' => 'Failed to create recipe. Please try again.'], 500);
-        }
+        return response()->json(['recipes' => $recipes], 200);
     }
 
 
 
-    public function updateRecipe(Request $request, $recipeId)
+    public function update(Request $request, $id)
     {
+        $recipe = Recipe::find($id);
+
+        if (!$recipe) {
+            return response()->json(['error' => 'Recipe not found'], 404);
+        }
+
+        // Validate incoming request data
         $request->validate([
-            'title' => 'required|string',
-            'ingredients' => 'required|string',
-            'steps' => 'required|string',
-            'cooking_time' => 'required|integer',
-            'difficulty' => 'required|string',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'title' => 'sometimes|string|max:255',
+            'ingredients' => 'sometimes|string',
+            'steps' => 'sometimes|string',
+            'cooking_time' => 'sometimes|integer',
+            'difficulty_level' => 'sometimes|in:easy,medium,difficult',
         ]);
 
-        $user = Auth::user();
+        // Recipe update logic
+        $recipe->update($request->all());
 
-        if (!$user) {
-            return response()->json(['message' => 'User not authenticated'], 401);
-        }
-
-        try {
-            $recipe = Recipe::findOrFail($recipeId);
-
-            // Check if the authenticated user owns the recipe
-            if ($recipe->user_id !== $user->id) {
-                return response()->json(['message' => 'Unauthorized to update this recipe'], 403);
-            }
-
-            // Update the recipe data
-            $recipe->update($request->except('images'));
-
-            // Delete existing images
-            $recipe->images()->delete();
-
-            // Add new images
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $path = $image->store('recipe_images');
-
-                    RecipeImage::create([
-                        'recipe_id' => $recipe->id,
-                        'image_path' => $path,
-                    ]);
-                }
-            }
-
-            $recipe = Recipe::with(['user', 'images'])->find($recipe->id);
-
-            return response()->json(['message' => 'Recipe updated successfully', 'data' => $recipe]);
-        } catch (\Exception $e) {
-            // Log the exception for debugging purposes
-            \Log::error('Error updating recipe: ' . $e->getMessage());
-
-            return response()->json(['message' => 'Failed to update recipe. Please try again.'], 500);
-        }
+        return response()->json(['message' => 'Recipe updated successfully', 'data' => $recipe], 200);
     }
 
-
-    // public function getRecipes()
-    // {
-    //     // Retrieve all recipes with associated user and images
-    //     $recipes = Recipe::with(['user', 'images'])->get();
-
-    //     return response()->json(['data' => $recipes]);
-    // }
-
-    public function deleteRecipe($recipeId)
+    public function delete($id)
     {
-        $recipe = Recipe::findOrFail($recipeId);
-        // $this->authorize('delete', $recipe); // Ensure the authenticated user can delete the recipe
+        $recipe = Recipe::find($id);
 
-        // Delete associated images
-        $recipe->images()->delete();
+        if (!$recipe) {
+            return response()->json(['error' => 'Recipe not found'], 404);
+        }
 
-        // Delete the recipe
+        // Recipe deletion logic
         $recipe->delete();
 
-        return response()->json(['message' => 'Recipe deleted successfully']);
+        return response()->json(['message' => 'Recipe deleted successfully'], 200);
     }
 
-    public function searchRecipes(Request $request)
+    public function getRecipe($id)
     {
-        // Implement search recipes logic based on your requirements
-    }
+        try {
+            // Fetch the recipe by ID
+            $recipe = Recipe::findOrFail($id);
 
-    public function rateRecipe(Request $request, $recipeId)
-    {
-        $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            // Add other validation rules as needed
-        ]);
-
-        $user = Auth::user();
-        $recipe = Recipe::findOrFail($recipeId);
-
-        // Check if the user has already rated the recipe
-        if ($recipe->ratings()->where('user_id', $user->id)->exists()) {
-            return response()->json(['message' => 'You have already rated this recipe'], 422);
+            return response()->json([
+                'success' => true,
+                'data' => $recipe,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Recipe not found.',
+            ], 404);
         }
-
-        // Create a new rating
-        $rating = $recipe->ratings()->create([
-            'user_id' => $user->id,
-            'rating' => $request->input('rating'),
-        ]);
-
-        return response()->json(['message' => 'Recipe rated successfully', 'data' => $rating]);
     }
 
-    public function likeRecipe(Request $request, $recipeId)
+    public function recipesByFollowingUsers()
     {
-        $user = Auth::user();
-        $recipe = Recipe::findOrFail($recipeId);
+        // Get the IDs of users followed by the current user
+        $followingUserIds = auth()->user()->following()->pluck('id');
     
-        // Validation rules
-        $request->validate([
-            'type' => 'required|integer|in:0,1',
-        ]);
+        // Get recipes created by the followed users with creation date
+        $recipes = Recipe::whereIn('user_id', $followingUserIds)->with('user')->latest()->get();
     
-        // Check if the user has already liked or disliked the recipe
-        $existingLike = $recipe->likes()->where('user_id', $user->id)->first();
-    
-        if ($existingLike) {
-            return response()->json(['message' => 'You have already interacted with this recipe'], 422);
-        }
-    
-        // Attach the like or dislike to the user based on the validated request
-        $type = $request->input('type', 1); // Default to like if type is not provided
-        $recipe->likes()->attach($user->id, ['type' => $type]);
-    
-        $message = ($type == 1) ? 'Recipe liked successfully' : 'Recipe disliked successfully';
-    
-        return response()->json(['message' => $message]);
+        return response()->json(['recipes' => $recipes], 200);
     }
-    
-}
+}    

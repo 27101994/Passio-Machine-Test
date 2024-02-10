@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('recipe_id');
+            $table->integer('status')->default(0); // 0 for dislike, 1 for like
             $table->timestamps();
 
             // Define foreign key relationships
@@ -38,3 +39,4 @@ return new class extends Migration
         Schema::dropIfExists('likes');
     }
 };
+

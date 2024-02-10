@@ -2,90 +2,137 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+
 
 class UserController extends Controller
 {
-    /**
-     * Register a new user.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function register(Request $request)
-    {
+    // function for registering a new user
+    public function register(Request $request){
+
+        // validating the incoming data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|unique:users|max:255',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        //check for validation fails
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+        //new user creation
+        $data=User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
         ]);
 
-        // You can also create a profile for the user if needed
-        // $user->profile()->create(['additional_fields' => 'value']);
-
         return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
-        ], 201);
+            'success'=>true,
+            'message'=>'success',
+            'data'=>$data
+        ],200);
     }
 
-    /**
-     * Login a user.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
+// function for login
+public function login(Request $request){
+    $creditials=[
+        'email'=>$request->email,
+        'password'=>$request->password
+    ];
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        if (!auth()->attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $user = auth()->user();
-        $token = $user->createToken('Token Name')->accessToken;
-
+    if(!Auth::attempt($creditials)){
         return response()->json([
-            'message' => 'Login successful',
-            'user' => $user,
-            'access_token' => $token,
-        ], 200);
+            'success'=>false,
+            'message'=>'email or password is incorrect'
+        ],401);
     }
+    $user = Auth::user();
+    if ($user->blocked) {
+        Auth::logout(); 
+        return response()->json([
+            'success' => false,
+            'message' => 'User is blocked. contact admin.',
+        ], 403);
+    }
+    if ($user->is_admin) {
+        $token = $user->createToken('AdminToken')->accessToken;
+    } else {
+        $token = $user->createToken('UserToken')->accessToken;
+    }
+    return response()->json([
+        'success'=>true,
+        'id'=>$user->id,
+        'email'=>$user->email,
+        'is_admin'=>$user->is_admin,
+        'token' => $token,
+    ]);
+}
 
-        /**
-     * Logout the authenticated user.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
+    //logout function
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        $request->user()->token()->revoke();
 
-        return response()->json(['message' => 'Logout successful'], 200);
+        return response()->json([
+            'success' => true,
+            'message' => 'User logged out successfully',
+        ]);
     }
 
-
+    public function createProfile(Request $request)
+    {
+        // Check if the user is authenticated
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+    
+        // Validate incoming request data
+        $validator = Validator::make($request->all(), [
+            'bio' => 'required|string|max:255',
+            // Add other validation rules for additional profile fields if needed
+        ]);
+    
+        // If validation fails, return the error response
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+    
+        try {
+            // Get the authenticated user
+            $user = auth()->user();
+    
+            // Check if the user already has a profile
+            $existingProfile = $user->profile;
+    
+            if ($existingProfile) {
+                return response()->json(['message' => 'User already has a profile'], 409);
+            }
+    
+            // Create a new profile for the user
+            $user->profile()->create([
+                'bio' => $request->bio,
+                // Add other profile fields if needed
+            ]);
+    
+            return response()->json(['message' => 'Profile created successfully'], 201);
+        } catch (\Exception $e) {
+            // Log the error using the fully qualified namespace
+            Log::error('Error creating profile: ' . $e->getMessage());
+    
+            // Return a generic error response
+            return response()->json(['message' => 'Internal Server Error'], 500);
+        }
+    }
+    
 }
+

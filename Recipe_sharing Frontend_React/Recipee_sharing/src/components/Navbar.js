@@ -4,95 +4,104 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { removeUser } from "../store/authSlice";
 
 function Navbar() {
-    var user = useSelector(store => store.auth.user);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const user = useSelector((store) => store.auth.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-
-    function logout(){
-        if(user){
-            axios.post('http://127.0.0.1:8000/api/logout/',{},{
-               headers:{'Authorization':"Bearer "+ user.token}
-            });
-            dispatch(removeUser());
-            navigate('/login');
-        }
+  function logout() {
+    if (user) {
+      axios
+        .post(
+          'http://127.0.0.1:8000/api/logout/',
+          {},
+          {
+            headers: { Authorization: `Bearer ${user.accessToken}` },
+          }
+        )
+        .then(() => {
+          dispatch(removeUser());
+          navigate('/login');
+        })
+        .catch((error) => {
+          console.error('Error logging out:', error);
+        });
     }
-    
+  }
 
-    return (
-        <nav className="navbar navbar-expand-sm navbar-dark bg-dark">
-            <div className="navbar-brand">
-                <h4>Recipe Sharing website</h4>
-            </div>
-            <button
-                className="navbar-toggler"
-                type="button"
-                data-toggle="collapse"
-                data-target="#navbarNav"
-                aria-controls="navbarNav"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-            >
-                <span className="navbar-toggler-icon"></span>
-            </button>
-            <div className="collapse navbar-collapse mr-auto" id="navbarNav" style={{ float: "left" }}>
-                <ul className="navbar-nav ml-auto">
-                    <li className="nav-item">
-                        <NavLink
-                            to={"/"}
-                            className="nav-link"
-                            activeClassName="active"
-                        >
-                            Recipe List
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink
-                            to={"/recipe"}
-                            className="nav-link"
-                            activeClassName="active"
-                        >
-                            Create Recipe
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink
-                            to={"/register"}
-                            className="nav-link"
-                            activeClassName="active"
-                        >
-                            Register
-                        </NavLink>
-                    </li>
-                    {user ? (<>
-
-                        <li className="nav-item">
-                            <NavLink className="nav-link" to='/profiles'>
-                                Profiles
-                            </NavLink>
-                        </li>
-
-                        <li className="nav-item">
-                            <NavLink className="nav-link" onClick={logout}>
-                                Logout
-                            </NavLink>
-                        </li>
-                    </>) : (
-                        <li className="nav-item">
-                            <NavLink
-                                to={"/login"}
-                                className="nav-link"
-                                activeClassName="active"
-                            >
-                                Login
-                            </NavLink>
-                        </li>
-                    )}
-                </ul>
-            </div>
-        </nav>
-    );
+  return (
+    <nav className="navbar navbar-expand-sm navbar-dark bg-dark">
+      <div className="navbar-brand">
+        <h4>Recipe Sharing website</h4>
+      </div>
+      <button
+        className="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span className="navbar-toggler-icon"></span>
+      </button>
+      <div className="collapse navbar-collapse mr-auto" id="navbarNav" style={{ float: "left" }}>
+        <ul className="navbar-nav ml-auto">
+          <li className="nav-item">
+            <NavLink to={"/"} className="nav-link" activeClassName="active">
+              Recipe List
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink to={"/recipe/create"} className="nav-link" activeClassName="active">
+              Create Recipe
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink to={"/profiles"} className="nav-link" activeClassName="active">
+              UserProfile
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink to={"/create/profiles"} className="nav-link" activeClassName="active">
+              CreateProfile
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink to={"/activity"} className="nav-link" activeClassName="active">
+              Activity
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink to={"/register"} className="nav-link" activeClassName="active">
+              Register
+            </NavLink>
+          </li>
+          {user ? (
+            <>
+              {user.is_admin && (
+                <li className="nav-item">
+                  <NavLink to={"/admin"} className="nav-link" activeClassName="active">
+                    Admin Dashboard
+                  </NavLink>
+                </li>
+              )}
+              <li className="nav-item">
+                <NavLink className="nav-link" onClick={logout}>
+                  Logout
+                </NavLink>
+              </li>
+            </>
+          ) : (
+            <li className="nav-item">
+              <NavLink to={"/login"} className="nav-link" activeClassName="active">
+                Login
+              </NavLink>
+            </li>
+          )}
+        </ul>
+      </div>
+    </nav>
+  );
 }
 
 export default Navbar;

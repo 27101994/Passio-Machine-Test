@@ -19,7 +19,7 @@ function RegisterComponent() {
       password_confirmation: passwordConfirmation,
     };
 
-    axios.post('http://127.0.0.1:8000/api/register/', user)
+    axios.post('http://127.0.0.1:8000/api/register', user)
       .then(response => {
         setErrorMessage('');
         // Handle successful registration (redirect or show success message)

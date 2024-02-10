@@ -1,0 +1,78 @@
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+/.pnp
+.pnp.js
+
+# Output of 'npm pack'
+*.tgz
+
+# dotenv environment variables file
+.env
+
+# Yarn
+yarn-error.log
+yarn.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Parcel
+.cache
+dist
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# NestJS
+/dist/
+/cache/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+/.pnp
+.pnp.js
+
+# Output of 'npm pack'
+*.tgz
+
+# dotenv environment variables file
+.env
+
+# Yarn
+yarn-error.log
+yarn.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Parcel
+.cache
+dist
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# NestJS
+/dist/
+/cache/

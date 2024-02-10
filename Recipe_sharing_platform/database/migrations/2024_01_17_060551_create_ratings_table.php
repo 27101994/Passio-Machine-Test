@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('recipe_id');
-            $table->integer('rating'); // Rating value (e.g., 1 to 5)
+            $table->decimal('rating', 3, 1); // Rating value (e.g., 1 to 5)
             $table->timestamps();
 
             // Foreign key constraints

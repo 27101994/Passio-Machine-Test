@@ -8,25 +8,21 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('recipe_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('recipe_id')->constrained(); // assuming you named your recipes table as 'recipes'
-            $table->string('image_path');
+            $table->unsignedBigInteger('recipe_id');
+            $table->string('image_path')->nullable();
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('recipe_images');
     }

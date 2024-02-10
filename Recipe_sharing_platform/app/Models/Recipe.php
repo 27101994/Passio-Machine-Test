@@ -4,45 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;  // Add this line
-use Illuminate\Database\Eloquent\Relations\HasMany;     // Add this line
-use Illuminate\Database\Eloquent\Relations\BelongsToMany; // Add this line
 
 class Recipe extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'title',
-        'ingredients',
-        'steps',
-        'cooking_time',
-        'difficulty',
+        'user_id', 'title', 'ingredients', 'steps', 'cooking_time', 'difficulty_level', 'rating', 'likes',
     ];
 
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function images(): HasMany
+    public function tags()
     {
-        return $this->hasMany(RecipeImage::class, 'recipe_id');
+        return $this->belongsToMany(Tag::class);
     }
 
-    public function likes(): BelongsToMany
+    public function likes()
     {
-        return $this->belongsToMany(User::class, 'likes', 'recipe_id', 'user_id');
+        return $this->belongsToMany(User::class, 'likes', 'recipe_id', 'user_id')->withTimestamps();
     }
 
-    public function ratings(): HasMany
+    public function images()
+    {
+        return $this->hasMany(RecipeImage::class);
+    }
+
+    public function ratings()
     {
         return $this->hasMany(Rating::class, 'recipe_id');
     }
 
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class, 'recipe_tag', 'recipe_id', 'tag_id');
-    }
+
 }
