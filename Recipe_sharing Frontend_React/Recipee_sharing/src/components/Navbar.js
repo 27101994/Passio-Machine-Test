@@ -62,11 +62,6 @@ function Navbar() {
             </NavLink>
           </li>
           <li className="nav-item">
-            <NavLink to={"/create/profiles"} className="nav-link" activeClassName="active">
-              CreateProfile
-            </NavLink>
-          </li>
-          <li className="nav-item">
             <NavLink to={"/activity"} className="nav-link" activeClassName="active">
               Activity
             </NavLink>

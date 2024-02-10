@@ -56,7 +56,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/recipes', [RecipeController::class, 'getAllRecipes']);
     Route::delete('/recipes/{id}/delete', [RecipeController::class, 'delete']);
     Route::get('/recipes/{id}', [RecipeController::class, 'getRecipe']);
-    Route::get('/recipes/following-users', [RecipeController::class, 'recipesByFollowingUsers']);
+    // Route::get('/recipes/following-users', [RecipeController::class, 'recipesByFollowingUsers']);
     // Like routes
     Route::post('/recipes/{id}/like', [LikeController::class, 'like']);
     Route::post('/recipes/{id}/dislike', [LikeController::class, 'dislike']);

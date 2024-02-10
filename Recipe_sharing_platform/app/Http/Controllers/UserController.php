@@ -99,7 +99,7 @@ public function login(Request $request){
         // Validate incoming request data
         $validator = Validator::make($request->all(), [
             'bio' => 'required|string|max:255',
-            // Add other validation rules for additional profile fields if needed
+            // Add other validation rules for additional fields if needed
         ]);
     
         // If validation fails, return the error response
@@ -111,28 +111,27 @@ public function login(Request $request){
             // Get the authenticated user
             $user = auth()->user();
     
-            // Check if the user already has a profile
-            $existingProfile = $user->profile;
-    
-            if ($existingProfile) {
-                return response()->json(['message' => 'User already has a profile'], 409);
+            // Check if the user already has a bio
+            if ($user->bio) {
+                return response()->json(['message' => 'User already has a bio'], 409);
             }
     
-            // Create a new profile for the user
-            $user->profile()->create([
+            // Save the bio to the user
+            $user->update([
                 'bio' => $request->bio,
-                // Add other profile fields if needed
+                // Add other fields if needed
             ]);
     
-            return response()->json(['message' => 'Profile created successfully'], 201);
+            return response()->json(['message' => 'Bio created successfully'], 201);
         } catch (\Exception $e) {
             // Log the error using the fully qualified namespace
-            Log::error('Error creating profile: ' . $e->getMessage());
+            Log::error('Error creating bio: ' . $e->getMessage());
     
             // Return a generic error response
             return response()->json(['message' => 'Internal Server Error'], 500);
         }
     }
+    
     
 }
 

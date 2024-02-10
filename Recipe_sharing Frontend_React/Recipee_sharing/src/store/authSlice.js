@@ -1,28 +1,33 @@
-
 import { createSlice } from "@reduxjs/toolkit";
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: {
-      accessToken: null,
-      // Other user properties if needed
-    },
+    user: null, // Initialize user as null
   },
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
-      window.localStorage.setItem('user', JSON.stringify(action.payload));
+      try {
+        window.localStorage.setItem('user', JSON.stringify(action.payload));
+      } catch (error) {
+        console.error('Error storing user data in local storage:', error);
+      }
     },
     removeUser: (state) => {
       state.user = null;
-      window.localStorage.removeItem('user');
+      try {
+        window.localStorage.removeItem('user');
+      } catch (error) {
+        console.error('Error removing user data from local storage:', error);
+      }
     },
     setUserFromLocalStorage: (state) => {
-      var user = window.localStorage.getItem('user');
-      if (user) {
-        state.user = JSON.parse(user);
-      } else {
+      try {
+        var user = window.localStorage.getItem('user');
+        state.user = user ? JSON.parse(user) : null;
+      } catch (error) {
+        console.error('Error parsing user data from local storage:', error);
         state.user = null;
       }
     },

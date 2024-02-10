@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserFromLocalStorage } from '../store/authSlice';
 import Navbar from './Navbar';
-import { useParams } from 'react-router-dom';
 
 const ActivityFeed = () => {
   const [recipes, setRecipes] = useState([]);
@@ -13,9 +12,6 @@ const ActivityFeed = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
-  // Use useParams to get the userId from the route parameters
-  const { userId } = useParams();
-
   useEffect(() => {
     // Load user from localStorage on component mount
     dispatch(setUserFromLocalStorage());
@@ -24,12 +20,12 @@ const ActivityFeed = () => {
   useEffect(() => {
     const fetchActivityFeed = async () => {
       try {
-        if (!userId) {
-          // Handle the case when userId is undefined
-          throw new Error('User ID is undefined');
+        if (!user || !user.id) {
+          // Handle the case when user or user ID is undefined
+          throw new Error('User or User ID is undefined');
         }
 
-        const response = await axios.get(`http://127.0.0.1:8000/api/activity-feed/${userId}`, {
+        const response = await axios.get(`http://127.0.0.1:8000/api/activity-feed/${user.id}`, {
           headers: { Authorization: `Bearer ${user?.accessToken}` },
         });
 
@@ -48,19 +44,19 @@ const ActivityFeed = () => {
     if (user?.accessToken) {
       fetchActivityFeed();
     }
-  }, [userId, user?.accessToken, dispatch]);
+  }, [user, dispatch]);
 
   return (
     <div>
       <Navbar />
-      <h2>Activity Feed</h2>
+      <h2 className="mb-4">Activity Feed</h2>
       {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="text-danger">{error}</p>}
       {recipes.length === 0 && !loading && !error && <p>No recipes in the activity feed.</p>}
       {recipes.length > 0 && (
-        <ul>
+        <ul className="list-group">
           {recipes.map((recipe) => (
-            <li key={recipe.id}>
+            <li key={recipe.id} className="list-group-item">
               <strong>{recipe.user.name}</strong> created a recipe: {recipe.title}
             </li>
           ))}

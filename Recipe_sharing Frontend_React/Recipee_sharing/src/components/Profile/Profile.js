@@ -1,5 +1,3 @@
-// ProfileList.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -9,58 +7,46 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import { setUserFromLocalStorage } from '../../store/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileList = () => {
   const [profiles, setProfiles] = useState([]);
   const [error, setError] = useState(null);
   const [followedUsers, setFollowedUsers] = useState([]);
   const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const fetchProfiles = async () => {
-  //     try {
-  //       const response = await axios.get('http://127.0.0.1:8000/api/user-details', {
-  //         headers: {
-  //           Authorization: `Bearer ${user.accessToken}`,
-  //         },
-  //       });
-
-  //       setProfiles(response.data.profiles);
-  //       const storedFollowedUsers = localStorage.getItem('followedUsers');
-  //       setFollowedUsers(storedFollowedUsers ? JSON.parse(storedFollowedUsers) : []);
-  //     } catch (error) {
-  //       console.error('Error fetching profiles details:', error);
-  //       setError('Error fetching profiles details. Please try again.');
-  //     }
-  //   };
-
-  //   if (user.accessToken) {
-  //     fetchProfiles();
-  //   }
-  // }, [user.accessToken]);
+  // Define fetchProfiles outside of the useEffect block
+  const fetchProfiles = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/list-profiles', {
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`,
+        },
+      });
+      setProfiles(response.data.profiles);
+      // Retrieve the list of followed users from local storage
+      const storedFollowedUsers = localStorage.getItem('followedUsers');
+      setFollowedUsers(storedFollowedUsers ? JSON.parse(storedFollowedUsers) : []);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      setError('Error fetching profiles. Please try again.');
+    }
+  };
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:8000/api/list-profiles', {
-          headers: {
-            Authorization: `Bearer ${user.accessToken}`,
-          },
-        });
-        setProfiles(response.data.profiles);
-        // Retrieve the list of followed users from local storage
-        const storedFollowedUsers = localStorage.getItem('followedUsers');
-        setFollowedUsers(storedFollowedUsers ? JSON.parse(storedFollowedUsers) : []);
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-        setError('Error fetching profiles. Please try again.');
-      }
-    };
-
-    if (user.accessToken) {
-      fetchProfiles();
+    // Update user data from local storage on component mount
+    setUserFromLocalStorage();
+    if (!user || !user.accessToken) {
+      // Redirect to login or handle the case where user or accessToken is null
+      console.error('User or access token is missing.');
+      navigate('/login');
+      return;
     }
-  }, [user.accessToken]);
+    // Call fetchProfiles here
+    fetchProfiles();
+  }, [user, navigate]);
 
   const isFollowed = (profileId) => {
     // Check if the given profileId is in the list of followedUsers

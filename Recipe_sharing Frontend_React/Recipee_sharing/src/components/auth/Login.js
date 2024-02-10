@@ -36,7 +36,7 @@ function LoginComponent() {
         navigate('/admin');
       } else {
         // If the user is not an admin, navigate to the recipe list page
-        navigate('/');
+        navigate('/create/profiles');
       }
 
     } catch (error) {

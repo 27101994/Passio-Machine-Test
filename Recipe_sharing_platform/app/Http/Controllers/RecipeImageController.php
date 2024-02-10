@@ -63,14 +63,6 @@ public function getImagesByRecipeId($recipeId)
         ], 404);
     }
 
-    // Check if the authenticated user has access to the recipe
-    // if (Auth::user()->id !== $recipe->user_id) {
-    //     return response()->json([
-    //         'success' => false,
-    //         'message' => 'Unauthorized access to view images for this recipe.',
-    //     ], 403); // 403 Forbidden status code
-    // }
-
     // Retrieve images from the loaded relationship
     $images = $recipe->images;
 
@@ -80,6 +72,7 @@ public function getImagesByRecipeId($recipeId)
         'images' => $images,
     ]);
 }
+
 
 
 }

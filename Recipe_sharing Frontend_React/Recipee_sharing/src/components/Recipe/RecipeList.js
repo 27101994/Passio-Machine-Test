@@ -69,36 +69,30 @@ const RecipeList = ({ onEdit, onDelete }) => {
         }
     };
 
-    const handleSearch = async () => {
-        try {
-            const response = await axios.get(`http://127.0.0.1:8000/api/search?search_query=${searchQuery}`, {
-                headers: {
-                    Authorization: `Bearer ${user.accessToken}`,
-                },
-            });
-
-            // Initialize likesMap with the current state
-            const initialLikesMap = {};
-            response.data.recipes.forEach((recipe) => {
-                initialLikesMap[recipe.id] = { liked: false, disliked: false };
-            });
-            setLikesMap(initialLikesMap);
-
-            setRecipes(response.data.recipes);
-        } catch (error) {
-            console.error('Error searching recipes:', error.response ? error.response.data : error.message);
-        }
-    };
 
     useEffect(() => {
+        // Update user data from local storage on component mount
         setUserFromLocalStorage();
+        if (!user || !user.accessToken) {
+            // Redirect to login or handle the case where user or accessToken is null
+            navigate('/login');
+            return;
+        }
         fetchRecipes();
-    }, [user.accessToken]);
+    }, [user, navigate]);
+    
 
     useEffect(() => {
         // Save likesMap to local storage whenever it changes
         localStorage.setItem('likesMap', JSON.stringify(likesMap));
     }, [likesMap]);
+
+    useEffect(() => {
+        // Fetch recipe images for each recipe when recipes change
+        recipes.forEach((recipe) => {
+            fetchRecipeImages(recipe.id);
+        });
+    }, [recipes]);
 
     const handleDelete = async (recipeId) => {
         try {
@@ -179,18 +173,6 @@ const RecipeList = ({ onEdit, onDelete }) => {
         <div>
             <Navbar />
             <h2>Recipe List</h2>
-            <div>
-                <label htmlFor="searchQuery">Search:</label>
-                <input
-                    type="text"
-                    id="searchQuery"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button onClick={handleSearch} className="btn btn-primary ml-2">
-                    Search
-                </button>
-            </div>
             {recipes.length === 0 ? (
                 <p>No recipes available.</p>
             ) : (
@@ -199,7 +181,7 @@ const RecipeList = ({ onEdit, onDelete }) => {
                         <div key={recipe.id} className="col-md-4 mb-4">
                             <div className="card">
                                 {/* Use the RecipeImageComponent here */}
-                                <RecipeImageComponent images={recipe.images} />
+                                <RecipeImageComponent images={recipeImages[recipe.id]} />
 
                                 <div className="card-body">
                                     <h5 className="card-title">{recipe.title}</h5>
