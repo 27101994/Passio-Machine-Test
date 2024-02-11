@@ -59,12 +59,16 @@ To access the admin dashboard, use the following credentials:
 
 **Note:** Create an empty database for your Laravel project. Update the .env file with your database configuration.
 
+   ```dotenv
+   # .env
+
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
    DB_PORT=3306
    DB_DATABASE=your_database_name
    DB_USERNAME=your_database_username
    DB_PASSWORD=your_database_password
+   ```
 
 5. Run Migrations:
 
