@@ -17,6 +17,7 @@ To access the admin dashboard, use the following credentials:
 
    ```bash
    git clone https://github.com/your-username/recipe-sharing-platform.git
+   ```
 
 ## React setup
 
@@ -25,11 +26,13 @@ To access the admin dashboard, use the following credentials:
    ```bash
    cd Recipe_sharing Frontend_React\Recipee_sharing
    npm install
+   ```
 
 2. Start the development server:
    
    ```bash
    npm start
+   ```
 
 ## Laravel setup  
 
@@ -38,16 +41,19 @@ To access the admin dashboard, use the following credentials:
    ```bash
    cd Recipe_sharing_platform
    composer install
+   ```
 
 2. Copy Environment File:
    
    ```bash
-   cp .env.example .env
+   copy ".env.example" ".env"
+   ```
 
 3. Generate Application Key:
    
    ```bash
    php artisan key:generate
+   ```
 
 4. Create Database:
 
@@ -64,10 +70,35 @@ To access the admin dashboard, use the following credentials:
 
    ```bash
    php artisan migrate
+   ```
 
-6. Start the Development Server:   
+6. Install the Laravel Passport package using Composer:
+
+    ```bash
+    composer require laravel/passport
+    ```
+
+7. Run the Passport installation command:
+
+    ```bash
+    php artisan passport:install
+    ```
+
+8. After the above steps, obtain the generated API client credentials and update your `.env` file:
+
+    ```dotenv
+    # .env
+
+    PASSPORT_PERSONAL_ACCESS_CLIENT_ID=1
+    PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET="bjuKZT3FygHZwPofgXr7DD6uvil6CmdZvZbQKcnf"
+
+    PASSPORT_PASSWORD_CLIENT_ID=2
+    PASSPORT_PASSWORD_CLIENT_SECRET="2JP5LwJlX1XQRDnSj5mOXWwjreInlMpMKu06eIcY"
+    ```    
+
+9. Start the Development Server:   
 
    ```bash
    php artisan serve
-
+   ```
   
