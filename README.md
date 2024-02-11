@@ -94,10 +94,10 @@ To access the admin dashboard, use the following credentials:
     # .env
 
     PASSPORT_PERSONAL_ACCESS_CLIENT_ID=1
-    PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET="bjuKZT3FygHZwPofgXr7DD6uvil6CmdZvZbQKcnf"
+    PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET="replace_with_your_secret_key"
 
     PASSPORT_PASSWORD_CLIENT_ID=2
-    PASSPORT_PASSWORD_CLIENT_SECRET="2JP5LwJlX1XQRDnSj5mOXWwjreInlMpMKu06eIcY"
+    PASSPORT_PASSWORD_CLIENT_SECRET="replace_with_your_secret_key"
     ```    
 
 9. Start the Development Server:   
